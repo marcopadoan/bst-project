@@ -36,21 +36,22 @@ struct Bst{
 };
 
 // Prototyping
-void insert_node(Bst *bst, int x);  // inserisce il valore nel BST
-void recursive_insert_node(Node *current, int x);    // inserisce ricorsivamente dei valori nel BST
-bool find_value(Bst *bst, int x);       // trova un valore nel BST
+void insert_node(Bst &bst, int x);  // inserisce il valore nel BST
+void recursive_insert_node(Node *&current, int x);    // inserisce ricorsivamente dei valori nel BST
+bool find_value(Bst &bst, int x);       // trova un valore nel BST
 bool recursive_find_value(Node *current, int x);       // trova un valore nel BST ricorsivamente
 // funzioni per lo scorrimento e la stampa del BST
-void preorder_print(const Node *current);
-void inorder_print(const Node *current);      // stampa ordinata in modo crescente
-void postorder_print(const Node *current);
+void preorder_print(Node *current);
+void inorder_print(Node *current);      // stampa ordinata in modo crescente
+void postorder_print(Node *current);
+int height(Node *root);
+// funzioni per la cancellazione di un nodo del BST
 Node* find_value_for_delete(Node *current, int x);      // trova un valore nel BST, funzione necessaria per il delete di un nodo
-//TODO
 bool delete_node(Node *&current);
 
 
 int main(){
-    Bst *bst;
+    Bst bst;
     int n, val;
     char choice;
     while(true){
@@ -60,13 +61,14 @@ int main(){
         << "Premere '1' per stampare il BST" << endl
         << "Premere '2' per inserire i nodi nel BST" << endl
         << "Premere '3' per cercare un valore nel BST" << endl
-        << "Premere '4' per cancellare un nodo" << endl
+        << "Premere '4' per stampare l'altezza del BST" << endl
+        << "Premere '5' per cancellare un nodo" << endl
         << "Premere 'q' per uscire" << endl
         << "----------------------------------------------------------" << endl
         << "... ";
         cin >> choice;
         cout << endl;
-        }while(choice != '1' && choice != '2' && choice != '3' && choice != '4' && choice != 'q');
+        }while(choice != '1' && choice != '2' && choice != '3' && choice != '4' && choice != '5' && choice != 'Q' && choice != 'q');
         switch(choice){
         case '1':
             do{
@@ -82,13 +84,13 @@ int main(){
             }while(choice != '1' && choice != '2' && choice != '3');
             switch(choice){
                 case '1':
-                    preorder_print(bst -> root);
+                    preorder_print(bst.root);
                     break;
                 case '2':
-                    inorder_print(bst -> root);
+                    inorder_print(bst.root);
                     break;
                 case '3':
-                    postorder_print(bst -> root);
+                    postorder_print(bst.root);
                     break;
             }
             break;
@@ -113,13 +115,15 @@ int main(){
                         cin >> val;
                         insert_node(bst, val);
                     }
+                    cout << endl;
                     break;
                 case '2':
                     for(int i = 0; i < n; ++i){
                         cout << "Inserire un valore: ";
                         cin >> val;
-                        recursive_insert_node(bst -> root, val);
+                        recursive_insert_node(bst.root, val);
                     }
+                    cout << endl;
                     break;
                 }
             break;
@@ -145,18 +149,20 @@ int main(){
                         cout << "Il valore " << val << " NON è stato trovato all'interno del BST" << endl;
                     break;
                 case '2':
-                    if(recursive_find_value(bst -> root, val))
+                    if(recursive_find_value(bst.root, val))
                         cout << "Il valore " << val << " è stato trovato all'interno del BST " << endl;
                     else
                         cout << "Il valore " << val << " NON è stato trovato all'interno del BST" << endl;
                     break;
-
-                }
-            
-        case '4':{
+            }
+            break;
+        case '4' :
+                cout << "Altezza BST: " << height(bst.root) << endl;
+                break;
+        case '5':{
             cout << "Inserire un valore da cancellare nel nodo: ";
             cin >> val;
-            Node *node_to_delete = find_value_for_delete(bst -> root, val);
+            Node *node_to_delete = find_value_for_delete(bst.root, val);
             if(!node_to_delete){
                 cout << "ERRORE: nodo non trovato o BST vuoto." << endl;
                 break;
@@ -174,46 +180,48 @@ int main(){
     }
 }
 
-void insert_node(Bst *bst, int x){      // Inserimento iterativo
-    if(!bst || !bst -> root){       // se il bst è nullo o non esiste
-        Node *current = new Node(x);
-        bst -> root = current;      // inserisco direttamente il nodo il radice
+void insert_node(Bst &bst, int x){      // Inserimento iterativo
+    if(!bst.root){       // se il bst è vuoto
+        bst.root = new Node(x);      // inserisco direttamente il nodo il radice
         return;
     }
-    Node *current = new Node(x), *bst_node = bst -> root;
+    Node *bst_node = bst.root;
     while(true){
         if(x < bst_node -> value){      // se x < del valore del nodo attuale procedo per il sotto albero sinistro
             if(!bst_node -> left){      // se mi trovo in foglia, cioè quando il nodo successivo è vuoto
-                bst_node -> left = current;     // inserisco il nodo dove mi trovo attualmente
+                bst_node -> left = new Node(x);     // inserisco il nodo dove mi trovo attualmente
                 return;
-            }else
-                bst_node = bst_node -> left;     // senno continuo a scorre il bst verso il sotto albero sinistro
+            }
+            bst_node = bst_node -> left;         // senno continuo a scorre il bst verso il sotto albero sinistro
+
         }else if(x > bst_node -> value){        // se x > del valore del nodo attuale procedo per il sotto albero destro
             if(!bst_node -> right){         
-                bst_node -> right = current;
+                bst_node -> right = new Node(x);
                 return;
-            }else
-                bst_node = bst_node -> right;  // senno continuo verso il sotto albero destro
-        }
+            }
+            bst_node = bst_node->right;     // senno continuo a scorre il bst verso il sotto albero destro
+        }else
+            return;     // i duplicati non vengono inseriti   
     }
 }
 
-void recursive_insert_node(Node *current, int x){
+void recursive_insert_node(Node *&current, int x){
     if(!current){
         current = new Node(x);      // se il bst è vuoto inserisco il nodo in radice
         return;
     }
-    if(x < current -> value)        // se x < del valore attuale del nodo
+    if(x < current -> value){        // se x < del valore attuale del nodo
         recursive_insert_node(current -> left, x);   // procedo ricorsivamente fino a tanto che mi trovo in un nodo vuoto 
-    else if(x > current -> value)                       // durante la ricorsione verrà verificato se è < o > del valore del nodo corrente mentre lo scorro, fino ad arrivare in foglia e finalmente inserirlo
-        recursive_insert_node(current -> right, x);   
+    }else if(x > current -> value){                       // durante la ricorsione verrà verificato se è < o > del valore del nodo corrente mentre lo scorro, fino ad arrivare in foglia e finalmente inserirlo
+        recursive_insert_node(current -> right, x);
+    }   
     return;
 }
 
-bool find_value(Bst *bst, int x){
-    if(!bst || !bst -> root)        // se il bst non esiste o è vuoto ritorno falso
+bool find_value(Bst &bst, int x){
+    if(!bst.root)        // se il bst non esiste o è vuoto ritorno falso
         return false;
-    Node *current = bst -> root;
+    Node *current = bst.root;
     while(current){             // scorro finchè il nodo in cui mi trovo esiste e non è vuoto (nullptr)
         if(current -> value == x)       // se ho trovato il valore da cercare ritorno vero
             return true; 
@@ -232,29 +240,39 @@ bool recursive_find_value(Node *current, int x){
         return true;
     if(x < current -> value)        // se x < del valore del nodo attuale
         return recursive_find_value(current -> left, x);    // procedo ricorsivamente nel sotto albero sinistro
-                                                        // se x < del valore del nodo attuale
+    else                                                    // se x < del valore del nodo attuale
         return recursive_find_value(current -> right, x);   // procedo ricorsivamente nel sotto albero destro
 }
 
-void preorder_print(const Node *current){
+void preorder_print(Node *current){
     if(!current) return;            // se l'albero è vuoto non stampo nulla
     cout << current -> value << " ";      //stampo prima il valore del nodo
     preorder_print(current -> left);        // poi procedo nel sotto albero sinitro
     preorder_print(current -> right);       // e poi destro
 }
 
-void inorder_print(const Node *current){
+void inorder_print(Node *current){
     if(!current) return;
     inorder_print(current -> left);
     cout << current -> value << " ";
     inorder_print(current -> right);
 }
 
-void postorder_print(const Node *current){
+void postorder_print(Node *current){
     if(!current) return;        
     postorder_print(current -> left);
     postorder_print(current -> right);
     cout << current -> value << " ";
+}
+
+int height(Node *root){
+    if(!root)             // se il BST non esiste ritorno 0
+        return 0;
+    int left_height = height(root -> left),      // calcolo l'altezza rispetto il sotto albero sinistro
+    right_height = height(root -> right);        // calcolo l'altezza rispetto il sotto albero destro
+    if(left_height >= right_height)         // confronto e restituisco l'altezza più grande, incrementando sempre di 1
+        return 1 + left_height;
+    else return 1 + right_height;
 }
 
 Node* find_value_for_delete(Node *current, int x){      // funzione utilizzata per cercare un nodo da cancellare nel BST
@@ -286,7 +304,7 @@ bool delete_node(Node *&current){
     Node *succ = current -> right;  // usando la proprietà dei bst,  visto che ogni sottoalbero è a sua volta un bst; vado nel figlio destro
     while(succ -> left)        // per poi scorrere la struttura dei figli sinistri fino ad arrivare in foglia (se non esiste un figlio)
         succ = succ -> left;
-    current -> value = succ -> value;   // metto il valore del nodo da cancellare in foglia
 
-    return delete_node(current -> right);    // successivamente con la ricorsione cancello nel sottoalbero destro il successore
+    current -> value = succ -> value;   // metto il valore del nodo da cancellare in foglia
+    return delete_node(current -> right);    // successivamente con la ricorsione cancello il successore nel sottoalbero destro
 }
